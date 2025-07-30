@@ -3,6 +3,8 @@ package es.cic.curso25.proy009.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +22,7 @@ public class Arbol {
     private String especie;
 
     @OneToMany(mappedBy = "arbol", cascade = CascadeType.ALL, orphanRemoval = true) //relacion una a muchos rama va a tener clave foranea de arbol CascadetType.ALl define que cualquier operacion en arbol va a afectar a ramas. orphanRemoval = true indica que si elimina un rama de la lista también quiero que se elimina de la base de datos
-
+    @JsonManagedReference//dice a jackson que este lado se serializa de forma normal 
 
     private List<Rama> ramas = new ArrayList<>();
 

@@ -1,6 +1,7 @@
 package es.cic.curso25.proy009.Model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +21,7 @@ public class Rama {
 
     @ManyToOne //Muchas ramas a un arbol
     @JoinColumn(name="arbol_id") //Clave foranea de arbol
-    @JsonIgnore
+    @JsonBackReference// Define que este lado NO se serializa para evitar ciclos
     private Arbol arbol; //Para establecer relacion con arbol
 
     public Rama() {
