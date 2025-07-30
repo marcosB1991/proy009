@@ -38,7 +38,7 @@ public class ArbolService {
 
     public Arbol obtenerArbol(Long id){
         return arbolRepository.findById(id)
-        .orElseThrow(()-> new RuntimeException("Arbol no encontrado con id " + id));
+        .orElseThrow(()-> new ArbolNoEncontradoException(id));
     }
 
     public Arbol agregarRama(Long arbolId, Rama rama){
@@ -51,14 +51,14 @@ public class ArbolService {
 
     public void eliminarRama(Long ramaId) {
         if (!ramaRepository.existsById(ramaId)) {
-            throw new RuntimeException("Rama no encontrada con id: " + ramaId);
+            throw new RamaNoEncontradaException(ramaId);
         }
         ramaRepository.deleteById(ramaId);
     }
 
     public void eliminarArbol(Long id) {
         if (!arbolRepository.existsById(id)) {
-            throw new RuntimeException("Árbol no encontrado con id: " + id);
+            throw new ArbolNoEncontradoException(id);
         }
         arbolRepository.deleteById(id);
     }
