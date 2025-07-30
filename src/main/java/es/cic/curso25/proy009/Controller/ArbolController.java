@@ -3,6 +3,7 @@ package es.cic.curso25.proy009.Controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +51,21 @@ public class ArbolController {
         return ResponseEntity.ok(arbol);
     }
 
-    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarArbol(@PathVariable Long id){
+        arbolService.eliminarArbol(id);
+        return ResponseEntity.noContent().build();
+        //noCOntent da una respuesta con el codigo de estado y buil termina de construir el objeto 
+    }
+
+
+     @DeleteMapping("/rama/{id}")
+    public ResponseEntity<Void> eliminarRama(@PathVariable Long id){
+        arbolService.eliminarRama(id);
+        return ResponseEntity.noContent().build();
+        //noCOntent da una respuesta con el codigo de estado y buil termina de construir el objeto 
+    }
+
+
 
 }
