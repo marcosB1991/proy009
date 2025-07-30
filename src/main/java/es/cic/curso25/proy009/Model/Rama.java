@@ -1,5 +1,7 @@
 package es.cic.curso25.proy009.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +20,7 @@ public class Rama {
 
     @ManyToOne //Muchas ramas a un arbol
     @JoinColumn(name="arbol_id") //Clave foranea de arbol
+    @JsonIgnore
     private Arbol arbol; //Para establecer relacion con arbol
 
     public Rama() {
