@@ -1,5 +1,7 @@
 package es.cic.curso25.proy009.Service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import es.cic.curso25.proy009.Model.Arbol;
@@ -28,6 +30,15 @@ public class ArbolService {
         arbol.getRamas().add(rama); // getRamas devuelve una lista por lo que le hago un add de la rama creada  a la lista de ramas que tiene el arbol
         }
     return arbolRepository.save(arbol); //Una vez creado el arbol se añade a la bbdd con save 
+    }
+
+    public List<Arbol> listarArboles(){
+        return arbolRepository.findAll();
+    }
+
+    public Arbol obtenerArbol(Long id){
+        return arbolRepository.findById(id)
+        .orElseThrow(()-> new RuntimeException("Arbol no encontrado con id " + id));
     }
 
 }
