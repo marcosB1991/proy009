@@ -26,7 +26,7 @@ public class ArbolService {
         Arbol arbol = new Arbol(especie); //Creo un nuevo arbol
         for (int i = 0; i < numeroRamas; i++) {
         Rama rama = new Rama(i); // i será el número de hojas que lleva cada rama creada
-        rama.setArbol(arbol); //dentro del for establezco la relacion de cada rama con su arbol 
+        rama.setArbol(arbol); //dentro del for establezco la relacion de cada rama con su arbol lo que está haciendo es apuntar en memoria el Id no se crea hasta que llega al save momemento donde hibernate ya lo establece en la relacion de rama y arbol
         arbol.getRamas().add(rama); // getRamas devuelve una lista por lo que le hago un add de la rama creada  a la lista de ramas que tiene el arbol
         }
     return arbolRepository.save(arbol); //Una vez creado el arbol se añade a la bbdd con save 
