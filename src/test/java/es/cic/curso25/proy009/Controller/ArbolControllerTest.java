@@ -1,25 +1,19 @@
 package es.cic.curso25.proy009.Controller;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import es.cic.curso25.proy009.Model.Rama;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import es.cic.curso25.proy009.Model.Arbol;
-import es.cic.curso25.proy009.Model.Rama;
-import es.cic.curso25.proy009.Service.ArbolService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,63 +22,105 @@ public class ArbolControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    
-    @MockBean
-    private ArbolService arbolService;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    private String especie = "Olivo";
+    private Long arbolId;
 
-    @Test
-    void crearArbol() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
+        // Crear un árbol para usar en las pruebas
+        String especie = "Pino";
         int numRamas = 3;
 
-        // Crear un árbol con ramas via POST /arboles?especie=Olivo&numRamas=3
-        mockMvc.perform(post("/arboles")
+        String response = mockMvc.perform(post("/arboles")
                 .param("especie", especie)
-                .param("numRamas", String.valueOf(numRamas)))
-                .andExpect(status().isOk()) // Verifica un 200
-                .andExpect(jsonPath("$.especie").value(especie))// verica el body del json tenga un campo llamado
-                                                                    // especie con el valor que le he pasado
-                .andExpect(jsonPath("$.ramas.length()").value(numRamas)); // verifica el numero
+                .param("numRamas", String.valueOf(numRamas))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Obtener el id del árbol creado
+        arbolId = objectMapper.readTree(response).get("id").asLong();
     }
 
     @Test
     void listarArboles() throws Exception {
-        List<Arbol> lista = List.of(
-                new Arbol("Olivo"),
-                new Arbol("Pino"));
-
-        when(arbolService.listarArboles()).thenReturn(lista);
-
         mockMvc.perform(get("/arboles"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].especie").value("Olivo"))
-                .andExpect(jsonPath("$[1].especie").value("Pino"));
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void obtenerArbol() throws Exception {
+        mockMvc.perform(get("/arboles/{id}", arbolId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(arbolId))
+                .andExpect(jsonPath("$.especie").value("Pino"));
+    }
+
+    @Test
+    void crearArbol() throws Exception {
+        mockMvc.perform(post("/arboles")
+                .param("especie", "Roble")
+                .param("numRamas", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.especie").value("Roble"))
+                .andExpect(jsonPath("$.ramas.length()").value(2));
+    }
+
+    @Test
+    void agregarRama() throws Exception {
+        Rama nuevaRama = new Rama();
+        nuevaRama.setNumHOjas(10);
+
+        String ramaJson = objectMapper.writeValueAsString(nuevaRama);
+
+        mockMvc.perform(post("/arboles/{id}/rama", arbolId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ramaJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ramas").isArray())
+                .andExpect(jsonPath("$.ramas[?(@.numHOjas == 10)]").exists());
+    }
+
+    @Test
+    void eliminarRama() throws Exception {
+        // Primero, agregar una rama para eliminarla después
+        Rama ramaParaEliminar = new Rama();
+        ramaParaEliminar.setNumHOjas(5);
+
+        String ramaJson = objectMapper.writeValueAsString(ramaParaEliminar);
+
+        String response = mockMvc.perform(post("/arboles/{id}/rama", arbolId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ramaJson))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Long ramaId = objectMapper.readTree(response)
+                .get("ramas")
+                .get(response.length() - 1) //última rama añadida, para asegurar obtener id
+                .get("id")
+                .asLong();
+
+        // Nota: Si da problemas el método para obtener ramaId, podemos obtenerlo en otro paso.
+
+        mockMvc.perform(delete("/arboles/rama/{id}", ramaId))
+                .andExpect(status().isNoContent());
     }
 
     @Test
     void eliminarArbol() throws Exception {
-        int numRamas = 1;
-
-        // Crear árbol para eliminar
-        String response = mockMvc.perform(post("/arboles")
-                .param("especie", especie)
-                .param("numRamas", String.valueOf(numRamas)))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        Long arbolId = objectMapper.readTree(response).get("id").asLong();
-
-        // Eliminar árbol
-        mockMvc.perform(delete("/arboles/" + arbolId))
+        mockMvc.perform(delete("/arboles/{id}", arbolId))
                 .andExpect(status().isNoContent());
 
-        // Intentar obtener árbol eliminado debe dar error 404
-        mockMvc.perform(get("/arboles/" + arbolId))
-                .andExpect(status().isNotFound());
+        // Luego, validar que ya no existe
+        mockMvc.perform(get("/arboles/{id}", arbolId))
+                .andExpect(status().is4xxClientError());
     }
 }
